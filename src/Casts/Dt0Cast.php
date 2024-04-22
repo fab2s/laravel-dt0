@@ -46,7 +46,7 @@ class Dt0Cast implements CastsAttributes
      */
     public function get($model, string $key, $value, array $attributes): ?Dt0
     {
-        return $this->getDt0($model, $key, $value);
+        return $this->resolve($model, $key, $value);
     }
 
     /**
@@ -60,7 +60,7 @@ class Dt0Cast implements CastsAttributes
      */
     public function set($model, string $key, $value, array $attributes): ?string
     {
-        return $this->getDt0($model, $key, $value)?->toJson();
+        return $this->resolve($model, $key, $value)?->toJson();
     }
 
     /**
@@ -68,7 +68,7 @@ class Dt0Cast implements CastsAttributes
      * @throws NotNullableException
      * @throws JsonException
      */
-    protected function getDt0(Model $model, string $key, mixed $value): ?Dt0
+    protected function resolve(Model $model, string $key, mixed $value): ?Dt0
     {
         if ($value === null) {
             return $this->isNullable ? null : throw NotNullableException::make($key, $model);
