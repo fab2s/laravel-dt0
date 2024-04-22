@@ -25,6 +25,6 @@ use fab2s\Dt0\Laravel\Validator;
 class ValidatableDt0 extends Dt0
 {
     public readonly string $string;
-    public readonly string $int;
+    public readonly int $int;
     public readonly string $decimal;
 }

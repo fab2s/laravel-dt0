@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-class ValidationTest extends \Orchestra\Testbench\TestCase
+class ValidationTest extends TestCase
 {
     /**
      * @throws JsonException|Dt0Exception
