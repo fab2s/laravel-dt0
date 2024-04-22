@@ -12,7 +12,7 @@ namespace fab2s\Dt0\Laravel\Tests\Artifacts;
 use fab2s\Dt0\Attribute\Rule;
 use fab2s\Dt0\Attribute\Rules;
 use fab2s\Dt0\Attribute\Validate;
-use fab2s\Dt0\Dt0;
+use fab2s\Dt0\Laravel\Dt0;
 use fab2s\Dt0\Laravel\Tests\Artifacts\Rules\Lowercase;
 use fab2s\Dt0\Laravel\Validator;
 

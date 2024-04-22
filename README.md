@@ -1,18 +1,20 @@
 # Laravel Dt0
 
-[![CI](https://github.com/fab2s/laravel-dt0/actions/workflows/ci.yml/badge.svg)](https://github.com/fab2s/laravel-dt0/actions/workflows/ci.yml) [![CI](https://github.com/fab2s/laravel-dt0/actions/workflows/ci.yml/badge.svg)](https://github.com/fab2s/laravel-dt0/actions/workflows/ci.yml)
+[![CI](https://github.com/fab2s/laravel-dt0/actions/workflows/ci.yml/badge.svg)](https://github.com/fab2s/laravel-dt0/actions/workflows/ci.yml) [![QA](https://github.com/fab2s/laravel-dt0/actions/workflows/qa.yml/badge.svg)](https://github.com/fab2s/laravel-dt0/actions/workflows/qa.yml)
 
-Laravel support for [Dt0](https://github.com/fab2s/dt0), a DTO (_Data-Transport-Object_) PHP implementation than can both secure mutability and implement convenient ways to take control over input and output in various format.
+Laravel support for [fab2s/dt0](https://github.com/fab2s/dt0), a DTO (_Data-Transport-Object_) PHP implementation than can both secure mutability and implement convenient ways to take control over input and output in various formats.
 
 ## Installation
 
 `Dt0` can be installed using composer:
 
 ```shell
-composer require "fab2s/dt0"
+composer require "fab2s/laravel-dt0"
 ```
 
-Once done, you can start playing :
+## Validation
+
+Laravel `Dt0` is able to leverage the full power of Laravel validation on each of its properties. The validation is performed on the input data prior to any property casting or instantiation.
 
 ```php
 
@@ -20,9 +22,42 @@ Once done, you can start playing :
 $dt0 = SomeValidatableDt0::withValidation(...\Illuminate\Http\Request::all());
 ```
 
+## Model Attribute casting
+
+Should you want to use a `Dt0` as a Laravel Model attribute, you cas use [Dt0Cast](./src/Casts/Dt0Cast.php) to cast it.
+
+````php
+use Illuminate\Database\Eloquent\Model;
+
+class SomeModel extends Model
+{
+    protected $casts = [
+        'some_dt0'          => SomeDt0::class,
+        'some_nullable_dt0' => SomeNullableDt0::class.':nullable',
+    ];
+}
+
+$model = new SomeModel;
+
+$model->some_dt0 = '{"field":"value"}';
+// or 
+$model->some_dt0 = ['field' => 'value'];
+// or 
+$model->some_dt0 = SomeDt0::from(['field' => 'value']);
+
+// then
+$model->some_dt0->equals(SomeDt0::from('{"field":"value"}')); // true
+
+$model->some_dt0 = null; // throws a NotNullableException
+$model->some_nullable_dt0 = null; // works
+
+// can thus be tried
+$model->some_nullable_dt0 = SomeNullableDt0::tryFrom($anyInput);
+````
+
 ## Requirements
 
-`Dt0` is tested against php 8.1 and 8.2
+`Dt0` is tested against php 8.1 and 8.2 and Laravel 10 / 11
 
 ## Contributing
 
