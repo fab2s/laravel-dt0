@@ -19,7 +19,7 @@ use fab2s\Dt0\Laravel\Tests\TestCase;
 use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-class Dt0castTest extends TestCase
+class Dt0CastTest extends TestCase
 {
     /**
      * @param DumbDt0|class-string<NotNullableException>|null $expected
