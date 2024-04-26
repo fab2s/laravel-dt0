@@ -17,7 +17,7 @@ use fab2s\Dt0\Laravel\Tests\Artifacts\Rules\Lowercase;
 use fab2s\Dt0\Laravel\Validator;
 
 #[Validate(
-    new Validator,
+    Validator::class,
     new Rules(
         string: new Rule(new Lowercase),
     ),

@@ -10,10 +10,11 @@
 namespace fab2s\Dt0\Laravel;
 
 use fab2s\Dt0\Attribute\Rule;
+use fab2s\Dt0\Validator\ValidatorInterface;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
 use Illuminate\Validation\ValidationException;
 
-class Validator implements \fab2s\Dt0\Validator\ValidatorInterface
+class Validator implements ValidatorInterface
 {
     public array $rules = [];
 

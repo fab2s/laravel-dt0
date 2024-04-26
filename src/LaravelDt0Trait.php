@@ -9,11 +9,13 @@
 
 namespace fab2s\Dt0\Laravel;
 
-use fab2s\Dt0\Dt0 as BaseDt0;
-use Illuminate\Contracts\Database\Eloquent\Castable;
-use Illuminate\Contracts\Support\Arrayable;
+use fab2s\Dt0\Laravel\Casts\Dt0Cast;
+use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 
-abstract class Dt0 extends BaseDt0 implements Arrayable, Castable
+trait LaravelDt0Trait
 {
-    use LaravelDt0Trait;
+    public static function castUsing(array $arguments): CastsAttributes
+    {
+        return new Dt0Cast(static::class, ...$arguments);
+    }
 }
