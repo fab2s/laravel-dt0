@@ -16,15 +16,20 @@ use fab2s\Dt0\Laravel\Dt0;
 use fab2s\Dt0\Laravel\Tests\Artifacts\Rules\Lowercase;
 use fab2s\Dt0\Laravel\Validator;
 
-#[Validate(new Validator)]
+#[Validate(
+    new Validator,
+    new Rules(
+        string: new Rule(new Lowercase),
+    ),
+)]
 #[Rules(
-    string: new Rule(new Lowercase),
     int: new Rule('integer|min:0'),
-    decimal: new Rule(['decimal:2']),
 )]
 class ValidatableDt0 extends Dt0
 {
     public readonly string $string;
     public readonly int $int;
+
+    #[Rule(['decimal:2'])]
     public readonly string $decimal;
 }

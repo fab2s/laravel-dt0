@@ -21,6 +21,31 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 class Dt0CastTest extends TestCase
 {
+    public function test_dt0_cast()
+    {
+        $input = [
+            'prop1' => 'prop1',
+            'prop2' => 'prop1',
+            'prop3' => 'prop1',
+        ];
+
+        $model           = new CastModel;
+        $model->some_dt0 = $input;
+        $this->assertInstanceOf(DumbDt0::class, $model->some_dt0);
+
+        $model->some_nullable_dt0 = json_encode($input);
+        $this->assertInstanceOf(DumbDt0::class, $model->some_nullable_dt0);
+
+        $model->some_dt0 = $model->some_nullable_dt0;
+        $this->assertInstanceOf(DumbDt0::class, $model->some_dt0);
+
+        $model->some_nullable_dt0 = null;
+        $this->assertNull($model->some_nullable_dt0);
+
+        $this->expectException(NotNullableException::class);
+        $model->some_dt0 = null;
+    }
+
     /**
      * @param DumbDt0|class-string<NotNullableException>|null $expected
      *

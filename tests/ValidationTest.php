@@ -21,7 +21,7 @@ class ValidationTest extends TestCase
      * @throws JsonException|Dt0Exception
      */
     #[DataProvider('validationProvider')]
-    public function test_enum_dt0(
+    public function test_validation(
         array $args,
         array $expected = [],
     ): void {

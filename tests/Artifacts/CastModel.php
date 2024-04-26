@@ -16,7 +16,7 @@ class CastModel extends Model
     protected $table   = 'table';
     protected $guarded = [];
     protected $casts   = [
-        'some_dt0'          => SomeDt0::class,
-        'some_nullable_dt0' => SomeNullableDt0::class . ':nullable',
+        'some_dt0'          => DumbDt0::class,
+        'some_nullable_dt0' => DumbDt0::class . ':nullable',
     ];
 }

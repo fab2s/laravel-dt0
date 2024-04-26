@@ -14,12 +14,12 @@ composer require "fab2s/laravel-dt0"
 
 ## Validation
 
-Laravel `Dt0` is able to leverage the full power of Laravel validation on each of its properties. The validation is performed on the input data prior to any property casting or instantiation.
+Laravel `Dt0` is able to leverage the full power of Laravel validation on each of its public properties. The validation is performed on the input data prior to any property casting or instantiation.
 
 ```php
 
 // either get a Dt0 instance or a ValidationException
-$dt0 = SomeValidatableDt0::withValidation(...\Illuminate\Http\Request::all());
+$dt0 = SomeValidatableDt0::withValidation(...Request::all());
 ```
 
 ## Model Attribute casting
