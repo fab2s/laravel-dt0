@@ -2,11 +2,15 @@ name: CI
 on: [pull_request]
 jobs:
   tests:
-    name: Laravel Dt0 (PHP ${{ matrix.php-versions }})
+    name: Laravel Dt0 (PHP ${{ matrix.php-versions }} / Orchestra ${{ matrix.orchestra-versions }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         php-versions: [ '8.1', '8.2' ]
+        orchestra-versions: [ '8.0', '9.0' ]
+        exclude:
+          - php-versions: 8.1
+            orchestra-versions: 9.0
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -30,6 +34,12 @@ jobs:
 
       - name: Remove composer.lock
         run: rm -f composer.lock
+
+      - name: Remove pint dependency
+        run: composer remove "laravel/pint" --dev --no-update
+
+      - name: Install Orchestra ${{ matrix.orchestra-versions }}
+        run: composer require "orchestra/testbench:^${{ matrix.orchestra-versions }}" --dev --no-update
 
       - name: Install Composer dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader

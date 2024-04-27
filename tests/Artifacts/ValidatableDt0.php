@@ -12,19 +12,24 @@ namespace fab2s\Dt0\Laravel\Tests\Artifacts;
 use fab2s\Dt0\Attribute\Rule;
 use fab2s\Dt0\Attribute\Rules;
 use fab2s\Dt0\Attribute\Validate;
-use fab2s\Dt0\Dt0;
+use fab2s\Dt0\Laravel\Dt0;
 use fab2s\Dt0\Laravel\Tests\Artifacts\Rules\Lowercase;
 use fab2s\Dt0\Laravel\Validator;
 
-#[Validate(new Validator)]
+#[Validate(
+    Validator::class,
+    new Rules(
+        string: new Rule(new Lowercase),
+    ),
+)]
 #[Rules(
-    string: new Rule(new Lowercase),
     int: new Rule('integer|min:0'),
-    decimal: new Rule(['decimal:2']),
 )]
 class ValidatableDt0 extends Dt0
 {
     public readonly string $string;
-    public readonly string $int;
+    public readonly int $int;
+
+    #[Rule(['decimal:2'])]
     public readonly string $decimal;
 }
