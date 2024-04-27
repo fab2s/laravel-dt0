@@ -11,8 +11,8 @@ namespace fab2s\Dt0\Laravel\Caster;
 
 use fab2s\Dt0\Caster\ArrayType;
 use fab2s\Dt0\Caster\CasterInterface;
+use fab2s\Dt0\Caster\ScalarCaster;
 use fab2s\Dt0\Caster\ScalarType;
-use fab2s\Dt0\Caster\ScalarTypeCaster;
 use fab2s\Dt0\Dt0;
 use fab2s\Dt0\Exception\CasterException;
 use fab2s\Dt0\Property\Property;
@@ -21,7 +21,7 @@ use Illuminate\Support\Collection;
 class CollectionOfCaster implements CasterInterface
 {
     public readonly ArrayType|ScalarType|string $logicalType;
-    protected ?ScalarTypeCaster $scalarTypeCaster;
+    protected ?ScalarCaster $scalarCaster;
 
     /**
      * @throws CasterException
@@ -44,8 +44,8 @@ class CollectionOfCaster implements CasterInterface
             throw new CasterException('[' . Dt0::classBasename(static::class) . "] $type is not an ArrayType nor a ScalarType");
         }
 
-        $this->logicalType      = $logicalType;
-        $this->scalarTypeCaster = $this->logicalType instanceof ScalarType ? new ScalarTypeCaster($this->logicalType) : null;
+        $this->logicalType  = $logicalType;
+        $this->scalarCaster = $this->logicalType instanceof ScalarType ? new ScalarCaster($this->logicalType) : null;
     }
 
     public function cast(mixed $value): ?Collection
@@ -60,7 +60,7 @@ class CollectionOfCaster implements CasterInterface
             $result->push(match ($this->logicalType) {
                 ArrayType::DT0  => $this->type::tryFrom($item),
                 ArrayType::ENUM => Property::tryEnum($this->type, $item),
-                default         => $this->scalarTypeCaster->cast($item),
+                default         => $this->scalarCaster->cast($item),
             });
         }
 
