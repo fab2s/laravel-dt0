@@ -16,6 +16,17 @@ composer require "fab2s/laravel-dt0"
 
 `Laravel Dt0` only adds Validation implementation and model attribute casting to `Dt0`. All other features will work exactly the same. Have a look at  [`Dt0`](https://github.com/fab2s/dt0) to find out more.
 
+## Caster
+
+In addition to [`Dt0 casters`](https://github.com/fab2s/dt0/tree/main/src/docs/casters.md), `Laravel Dt0` adds a [`CollectionOfCaster`](./src/Caster/CollectionOfCaster.php) which can be used to strongly type a Laravel `Collection`:
+
+````php
+    #[Cast(in: new CollectionOfCaster(MyDt0::class))] // Dt0|UnitEnum|ScalarType|string
+    public readonly Collection $prop;
+````
+
+It can be used as an inspiration to cast into more types.
+
 ## Validation
 
 `Laravel Dt0` is able to leverage the full power of Laravel validation on each of its public properties. The validation is performed on the input data prior to any property casting or instantiation.

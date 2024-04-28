@@ -15,8 +15,10 @@ use fab2s\Dt0\Caster\ScalarCaster;
 use fab2s\Dt0\Caster\ScalarType;
 use fab2s\Dt0\Dt0;
 use fab2s\Dt0\Exception\CasterException;
+use fab2s\Dt0\Exception\Dt0Exception;
 use fab2s\Dt0\Property\Property;
 use Illuminate\Support\Collection;
+use JsonException;
 
 class CollectionOfCaster implements CasterInterface
 {
@@ -41,13 +43,17 @@ class CollectionOfCaster implements CasterInterface
         }
 
         if (! $logicalType) {
-            throw new CasterException('[' . Dt0::classBasename(static::class) . "] $type is not an ArrayType nor a ScalarType");
+            throw new CasterException('[' . Dt0::classBasename(static::class) . "] $type is not a supported type");
         }
 
         $this->logicalType  = $logicalType;
         $this->scalarCaster = $this->logicalType instanceof ScalarType ? new ScalarCaster($this->logicalType) : null;
     }
 
+    /**
+     * @throws Dt0Exception
+     * @throws JsonException
+     */
     public function cast(mixed $value): ?Collection
     {
         if (! is_iterable($value)) {
@@ -58,9 +64,11 @@ class CollectionOfCaster implements CasterInterface
 
         foreach ($value as $item) {
             $result->push(match ($this->logicalType) {
-                ArrayType::DT0  => $this->type::tryFrom($item),
-                ArrayType::ENUM => Property::tryEnum($this->type, $item),
-                default         => $this->scalarCaster->cast($item),
+                ArrayType::DT0  => $this->type::from($item),
+                ArrayType::ENUM => Property::enumFrom($this->type, $item),
+                default         => $this->scalarCaster->cast($item) ?? throw (new CasterException('Could not cast array item to scalar type ' . $this->logicalType->value))->setContext([
+                    'item' => $item,
+                ]),
             });
         }
 
