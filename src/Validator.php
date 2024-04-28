@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class Validator implements ValidatorInterface
 {
-    public array $rules = [];
+    protected array $rules = [];
 
     /**
      * @throws ValidationException

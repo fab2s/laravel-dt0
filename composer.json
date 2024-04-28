@@ -29,7 +29,7 @@
     ],
     "require": {
         "php": "^8.1",
-        "fab2s/dt0": "dev-main",
+        "fab2s/dt0": "^0.0.1",
         "illuminate/translation": "^10.0|^11.0",
         "illuminate/validation": "^10.0|^11.0"
     },

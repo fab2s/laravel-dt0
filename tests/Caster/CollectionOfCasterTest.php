@@ -12,6 +12,7 @@ namespace fab2s\Dt0\Laravel\Tests\Caster;
 use Exception;
 use fab2s\Dt0\Caster\ScalarType;
 use fab2s\Dt0\Exception\CasterException;
+use fab2s\Dt0\Exception\Dt0Exception;
 use fab2s\Dt0\Laravel\Caster\CollectionOfCaster;
 use fab2s\Dt0\Laravel\Tests\Artifacts\DumbDt0;
 use fab2s\Dt0\Laravel\Tests\TestCase;
@@ -35,6 +36,13 @@ class CollectionOfCasterTest extends TestCase
     {
         $this->expectException(CasterException::class);
         new CollectionOfCaster('NotAType');
+    }
+
+    public function test_scalar_exception(): void
+    {
+        $this->expectException(Dt0Exception::class);
+        $caster = new CollectionOfCaster(ScalarType::bool);
+        $caster->cast([[]]);
     }
 
     public static function castProvider(): array
