@@ -12,7 +12,7 @@
     },
     "keywords": [
         "Laravel",
-        "Data-Transport-Object",
+        "Data-Transfer-Object",
         "DTO",
         "DT0",
         "symfony",
