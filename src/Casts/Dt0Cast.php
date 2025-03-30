@@ -15,6 +15,7 @@ use fab2s\Dt0\Laravel\Exceptions\NotNullableException;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
 use JsonException;
+use ReflectionException;
 
 class Dt0Cast implements CastsAttributes
 {
@@ -43,6 +44,7 @@ class Dt0Cast implements CastsAttributes
      * @throws NotNullableException
      * @throws JsonException
      * @throws Dt0Exception
+     * @throws ReflectionException
      */
     public function get($model, string $key, $value, array $attributes): ?Dt0
     {
@@ -57,6 +59,7 @@ class Dt0Cast implements CastsAttributes
      * @throws Dt0Exception
      * @throws NotNullableException
      * @throws JsonException
+     * @throws ReflectionException
      */
     public function set($model, string $key, $value, array $attributes): ?string
     {
@@ -67,6 +70,7 @@ class Dt0Cast implements CastsAttributes
      * @throws Dt0Exception
      * @throws NotNullableException
      * @throws JsonException
+     * @throws ReflectionException
      */
     protected function resolve(Model $model, string $key, mixed $value): ?Dt0
     {

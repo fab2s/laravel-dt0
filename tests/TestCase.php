@@ -11,7 +11,7 @@ namespace fab2s\Dt0\Laravel\Tests;
 
 abstract class TestCase extends \Orchestra\Testbench\TestCase
 {
-    public function setUp(): void
+    protected function setUp(): void
     {
         // Turn on error reporting
         error_reporting(E_ALL);
