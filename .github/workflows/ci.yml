@@ -6,11 +6,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-versions: [ '8.1', '8.2' ]
-        orchestra-versions: [ '8.0', '9.0' ]
+        php-versions: [ '8.1', '8.2', '8.3', '8.4' ]
+        orchestra-versions: [ '8.0', '9.0', '10.0' ]
         exclude:
           - php-versions: 8.1
             orchestra-versions: 9.0
+          - php-versions: 8.1
+            orchestra-versions: 10.0
+          - php-versions: 8.4
+            orchestra-versions: 8.0
     steps:
       - name: Checkout
         uses: actions/checkout@v3

@@ -10,17 +10,18 @@
 namespace fab2s\Dt0\Laravel\Caster;
 
 use fab2s\Dt0\Caster\ArrayType;
-use fab2s\Dt0\Caster\CasterInterface;
+use fab2s\Dt0\Caster\CasterAbstract;
 use fab2s\Dt0\Caster\ScalarCaster;
 use fab2s\Dt0\Caster\ScalarType;
 use fab2s\Dt0\Dt0;
 use fab2s\Dt0\Exception\CasterException;
 use fab2s\Dt0\Exception\Dt0Exception;
-use fab2s\Dt0\Property\Property;
+use fab2s\Enumerate\Enumerate;
 use Illuminate\Support\Collection;
 use JsonException;
+use ReflectionException;
 
-class CollectionOfCaster implements CasterInterface
+class CollectionOfCaster extends CasterAbstract
 {
     public readonly ArrayType|ScalarType|string $logicalType;
     protected ?ScalarCaster $scalarCaster;
@@ -51,10 +52,12 @@ class CollectionOfCaster implements CasterInterface
     }
 
     /**
+     * @throws CasterException
      * @throws Dt0Exception
      * @throws JsonException
+     * @throws ReflectionException
      */
-    public function cast(mixed $value): ?Collection
+    public function cast(mixed $value, array|Dt0|null $data = null): ?Collection
     {
         if (! is_iterable($value)) {
             return null;
@@ -65,7 +68,7 @@ class CollectionOfCaster implements CasterInterface
         foreach ($value as $item) {
             $result->push(match ($this->logicalType) {
                 ArrayType::DT0  => $this->type::from($item),
-                ArrayType::ENUM => Property::enumFrom($this->type, $item),
+                ArrayType::ENUM => Enumerate::fromAny($this->type, $item),
                 default         => $this->scalarCaster->cast($item) ?? throw (new CasterException('Could not cast array item to scalar type ' . $this->logicalType->value))->setContext([
                     'item' => $item,
                 ]),
