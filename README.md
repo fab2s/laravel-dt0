@@ -150,7 +150,7 @@ $model->some_nullable_dt0 = SomeNullableDt0::tryFrom($anyInput);
 
 ## Requirements
 
-`Dt0` is tested against php 8.1 and 8.2 and Laravel 10 / 11
+`Dt0` is tested against php 8.1 and 8.2, 8.3, 8.4 and Laravel 10 / 11 / 12
 
 ## Contributing
 
