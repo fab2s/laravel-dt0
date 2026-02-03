@@ -18,6 +18,8 @@ Traditional DTOs with mutable properties miss the core purpose: **guaranteeing t
 
 > **Note:** This package extends [fab2s/dt0](https://github.com/fab2s/dt0) with Laravel-specific features (validation, Eloquent casting). All features from the base package, including [property casting](https://github.com/fab2s/dt0/blob/0.0.2/docs/casters.md), property renaming, default values, output filtering, and more, work seamlessly here. Visit the [dt0 documentation](https://github.com/fab2s/dt0) for the complete feature set.
 
+**Flexible, not dogmatic.** While immutability is the core feature, Dt0 doesn't force it. Use mutable properties when needed. Expose protected properties via `with()`. The package provides capabilities; you decide how to use them.
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -29,6 +31,8 @@ Traditional DTOs with mutable properties miss the core purpose: **guaranteeing t
   - [Immutable Updates](#immutable-updates)
 - [Laravel Validation](#laravel-validation)
   - [Defining Rules](#defining-rules)
+  - [Rule Priority](#rule-priority)
+  - [Triggering Validation](#triggering-validation)
   - [Custom Validation Rules](#custom-validation-rules)
 - [Model Attribute Casting](#model-attribute-casting)
 - [Casters](#casters)
@@ -152,9 +156,11 @@ $original->equals($updated); // false
 
 Laravel Dt0 integrates seamlessly with [Laravel's validation system](https://laravel.com/docs/master/validation). Validation runs on input data **before** any casting or instantiation.
 
+> **Note:** This package uses Laravel's `Validator` under the hood. All [Laravel validation rules](https://laravel.com/docs/master/validation#available-validation-rules), [custom rule objects](https://laravel.com/docs/master/validation#custom-validation-rules), and [error message customization](https://laravel.com/docs/master/validation#customizing-the-error-messages) work exactly as documented in Laravel.
+
 ### Defining Rules
 
-Rules can be defined in three ways (combinable):
+Rules can be defined at three levels:
 
 #### 1. Via `Validate` Class Attribute
 
@@ -208,7 +214,35 @@ class UserDto extends Dt0
 }
 ```
 
-> **Priority:** When rules are defined in multiple places, the priority is: `Validate` > `Rules` > `Rule`
+**When to use each approach:**
+
+| Approach | Best for |
+|----------|----------|
+| Property `#[Rule]` | Keeping rules close to properties, self-documenting DTOs |
+| Class `#[Rules]` | Grouping rules together, inherited properties |
+| `#[Validate]` Rules | Default/fallback rules that subclasses can override |
+
+### Rule Priority
+
+When the same property has rules defined at multiple levels, **only the highest priority rule applies** — rules are not merged.
+
+**Priority order:** Property `#[Rule]` > Class `#[Rules]` > `#[Validate]` Rules
+
+```php
+#[Validate(
+    Validator::class,
+    new Rules(name: new Rule('min:100')),  // Lowest priority
+)]
+#[Rules(name: new Rule('min:50'))]          // Middle priority
+class UserDto extends Dt0
+{
+    #[Rule('min:5')]  // Highest priority — only min:5 is applied
+    public readonly string $name;
+}
+
+// Validates with min:5, NOT min:50 or min:100
+$dto = UserDto::withValidation(name: 'hello'); // OK (5 chars)
+```
 
 ### Triggering Validation
 
