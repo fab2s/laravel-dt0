@@ -12,13 +12,14 @@ namespace fab2s\Dt0\Laravel\Tests;
 use fab2s\Dt0\Exception\Dt0Exception;
 use fab2s\Dt0\Laravel\Tests\Artifacts\ValidatableDt0;
 use Illuminate\Validation\ValidationException;
-use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionException;
 
 class ValidationTest extends TestCase
 {
     /**
-     * @throws JsonException|Dt0Exception
+     * @throws Dt0Exception
+     * @throws ReflectionException
      */
     #[DataProvider('validationProvider')]
     public function test_validation(
