@@ -16,7 +16,7 @@ Traditional DTOs with mutable properties miss the core purpose: **guaranteeing t
 - **Type Safety** — Strong typing with bidirectional casting support
 - **Performance** — Logic compiled once per process and cached
 
-> **Note:** This package extends [fab2s/dt0](https://github.com/fab2s/dt0) with Laravel-specific features (validation, Eloquent casting). All features from the base package, including [property casting](https://github.com/fab2s/dt0/blob/0.0.2/docs/casters.md), property renaming, default values, output filtering, and more, work seamlessly here. Visit the [dt0 documentation](https://github.com/fab2s/dt0) for the complete feature set.
+> **Note:** This package extends [fab2s/dt0](https://github.com/fab2s/dt0) with Laravel-specific features (validation, Eloquent casting). All features from the base package, including [property casting](https://github.com/fab2s/dt0/blob/1.0.0/docs/casters.md), property renaming, default values, output filtering, and more, work seamlessly here. Visit the [dt0 documentation](https://github.com/fab2s/dt0) for the complete feature set.
 
 **Flexible, not dogmatic.** While immutability is the core feature, Dt0 doesn't force it. Use mutable properties when needed. Expose protected properties via `with()`. The package provides capabilities; you decide how to use them.
 
@@ -38,6 +38,7 @@ Traditional DTOs with mutable properties miss the core purpose: **guaranteeing t
 - [Casters](#casters)
   - [Built-in Casters](#built-in-casters)
   - [CollectionOfCaster](#collectionofcaster)
+  - [EncryptedCaster](#encryptedcaster)
 - [Compatibility](#compatibility)
 - [Contributing](#contributing)
 - [License](#license)
@@ -336,7 +337,7 @@ Casters transform property values during hydration (input) and serialization (ou
 
 ### Built-in Casters
 
-From [`fab2s/dt0`](https://github.com/fab2s/dt0/blob/0.0.2/docs/casters.md):
+From [`fab2s/dt0`](https://github.com/fab2s/dt0/blob/1.0.0/docs/casters.md):
 
 | Caster | Description |
 |--------|-------------|
@@ -383,6 +384,54 @@ Supported types:
 - **Dt0 classes** — Each element cast via `Dt0::from()`
 - **Enums** — Each element cast to the enum
 - **Scalars** — `int`, `float`, `bool`, `string`
+
+### EncryptedCaster
+
+Encrypt/decrypt property values using Laravel's encryption:
+
+```php
+use fab2s\Dt0\Attribute\Cast;
+use fab2s\Dt0\Laravel\Caster\EncryptedCaster;
+use fab2s\Dt0\Laravel\Dt0;
+
+class UserDto extends Dt0
+{
+    public readonly string $name;
+
+    #[Cast(in: new EncryptedCaster, out: new EncryptedCaster)]
+    public readonly string $apiKey;
+}
+
+// Initialize with plaintext — auto-detected and passed through
+$user = UserDto::from([
+    'name' => 'John',
+    'apiKey' => 'my-secret-key',
+]);
+
+// Or load from encrypted storage — auto-detected and decrypted
+$user = UserDto::from([
+    'name' => 'John',
+    'apiKey' => $encryptedValue,
+]);
+
+$user->apiKey;      // Plaintext value
+$user->toArray();   // ['name' => 'John', 'apiKey' => '...encrypted...']
+```
+
+**Auto-detection:** On input, the caster automatically detects Laravel's encrypted payload format. Encrypted values are decrypted, while plaintext strings, arrays, and objects pass through unchanged. This allows flexible initialization from both plaintext and encrypted sources.
+
+**Options:**
+
+```php
+// Serialize complex values (arrays, objects)
+new EncryptedCaster(serialize: true)
+
+// Use a custom encryption key (defaults to APP_KEY)
+new EncryptedCaster(key: 'base64:...')
+
+// Custom key with specific cipher
+new EncryptedCaster(key: 'base64:...', cipher: 'AES-128-CBC')
+```
 
 ## Compatibility
 
