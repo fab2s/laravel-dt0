@@ -9,12 +9,13 @@
 
 namespace fab2s\Dt0\Laravel\Tests\Artifacts;
 
-use fab2s\Dt0\Attribute\Cast;
-use fab2s\Dt0\Laravel\Caster\EncryptedCaster;
-use fab2s\Dt0\Laravel\Dt0;
+use Illuminate\Database\Eloquent\Model;
 
-class EncryptedDt0 extends Dt0
+class EncryptedCastModel extends Model
 {
-    #[Cast(both: new EncryptedCaster)]
-    public readonly ?string $secret;
+    protected $table   = 'table';
+    protected $guarded = [];
+    protected $casts   = [
+        'encrypted_dt0' => EncryptedDt0::class,
+    ];
 }
