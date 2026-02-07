@@ -10,6 +10,7 @@
 namespace fab2s\Dt0\Laravel\Tests;
 
 use fab2s\Dt0\Laravel\Caster\EncryptedCaster;
+use fab2s\Dt0\Laravel\Tests\Artifacts\EncryptedCastModel;
 use fab2s\Dt0\Laravel\Tests\Artifacts\EncryptedDt0;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Crypt;
@@ -181,6 +182,45 @@ class EncryptedCasterTest extends TestCase
         $this->assertSame(true, $caster->cast(true, []));
     }
 
+    public function test_config_key_roundtrip(): void
+    {
+        $customKey = 'base64:' . base64_encode(random_bytes(32));
+        config(['custom.encryption.key' => $customKey]);
+
+        $caster = new EncryptedCaster(key: 'config:custom.encryption.key');
+
+        // Create a mock Dt0 for output context
+        $encrypted = Crypt::encryptString('test');
+        $dt0       = EncryptedDt0::from(['secret' => $encrypted]);
+
+        // Encrypt (output context)
+        $encryptedValue = $caster->cast('config-key-secret', $dt0);
+
+        // Should not be decryptable with default APP_KEY
+        $this->expectException(DecryptException::class);
+        Crypt::decryptString($encryptedValue);
+    }
+
+    public function test_config_key_decrypt(): void
+    {
+        $customKey = 'base64:' . base64_encode(random_bytes(32));
+        config(['custom.encryption.key' => $customKey]);
+
+        $caster = new EncryptedCaster(key: 'config:custom.encryption.key');
+
+        // Create a mock Dt0 for output context
+        $encrypted = Crypt::encryptString('test');
+        $dt0       = EncryptedDt0::from(['secret' => $encrypted]);
+
+        // Encrypt (output context)
+        $encryptedValue = $caster->cast('config-roundtrip', $dt0);
+
+        // Decrypt (input context) with same caster
+        $decrypted = $caster->cast($encryptedValue, []);
+
+        $this->assertSame('config-roundtrip', $decrypted);
+    }
+
     public function test_plaintext_string_passes_through(): void
     {
         $caster = EncryptedCaster::make();
@@ -205,5 +245,24 @@ class EncryptedCasterTest extends TestCase
 
         // Can decrypt the output
         $this->assertSame('my-plaintext-secret', Crypt::decryptString($output['secret']));
+    }
+
+    public function test_model_to_array_encrypts_dto_fields(): void
+    {
+        $model                = new EncryptedCastModel;
+        $model->encrypted_dt0 = ['secret' => 'model-secret-value'];
+
+        // The DTO property holds plaintext
+        $this->assertInstanceOf(EncryptedDt0::class, $model->encrypted_dt0);
+        $this->assertSame('model-secret-value', $model->encrypted_dt0->secret);
+
+        // Model toArray() triggers DTO toArray() which encrypts the field
+        $modelArray = $model->toArray();
+        $this->assertIsArray($modelArray['encrypted_dt0']);
+        $this->assertArrayHasKey('secret', $modelArray['encrypted_dt0']);
+        $this->assertNotSame('model-secret-value', $modelArray['encrypted_dt0']['secret']);
+
+        // The encrypted value is a valid encrypted payload
+        $this->assertSame('model-secret-value', Crypt::decryptString($modelArray['encrypted_dt0']['secret']));
     }
 }

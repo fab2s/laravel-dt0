@@ -12,33 +12,38 @@ namespace fab2s\Dt0\Laravel\Caster;
 use fab2s\Dt0\Caster\CasterAbstract;
 use fab2s\Dt0\Dt0;
 use Illuminate\Encryption\Encrypter;
-use Illuminate\Support\Facades\Crypt;
+use SensitiveParameter;
 
 class EncryptedCaster extends CasterAbstract
 {
-    protected ?Encrypter $encrypter = null;
+    protected static array $encrypters = [];
+    protected readonly Encrypter $encrypter;
 
     /**
      * @param bool        $serialize Whether to serialize/unserialize the value (for non-string data)
-     * @param string|null $key       Custom encryption key (supports "base64:" prefix). Defaults to APP_KEY.
+     * @param string|null $key       Custom encryption key (supports "base64:" key / "config:" config.custom.key prefix). Defaults to APP_KEY.
      * @param string|null $cipher    Cipher to use with custom key. Defaults to app cipher (usually AES-256-CBC).
      */
     public function __construct(
         public readonly bool $serialize = false,
+        #[SensitiveParameter]
         ?string $key = null,
+        #[SensitiveParameter]
         ?string $cipher = null,
     ) {
-        if ($key !== null) {
-            $this->encrypter = new Encrypter(
-                $this->parseKey($key),
-                $cipher ?? config('app.cipher', 'AES-256-CBC'),
-            );
-        }
+        $cipher ??= config('app.cipher', 'AES-256-CBC');
+        $key          = $this->parseKey($key ?? config('app.key'));
+        $encrypterKey = sha1($key . $cipher);
+        static::$encrypters[$encrypterKey] ??= new Encrypter($key, $cipher);
+
+        $this->encrypter = static::$encrypters[$encrypterKey];
     }
 
     public static function make(
         bool $serialize = false,
+        #[SensitiveParameter]
         ?string $key = null,
+        #[SensitiveParameter]
         ?string $cipher = null,
     ): static {
         return new static($serialize, $key, $cipher);
@@ -48,7 +53,7 @@ class EncryptedCaster extends CasterAbstract
      * On input ($data is array): decrypts the value if encrypted, otherwise passes through.
      * On output ($data is Dt0): encrypts the value.
      */
-    public function cast(mixed $value, array|Dt0|null $data = null): mixed
+    public function cast(#[SensitiveParameter] mixed $value, #[SensitiveParameter] array|Dt0|null $data = null): mixed
     {
         if ($value === null) {
             return null;
@@ -59,19 +64,16 @@ class EncryptedCaster extends CasterAbstract
             return $this->encrypt($value);
         }
 
-        // Input context: decrypt if encrypted string, otherwise pass through
+        // Input context: decrypt if encrypted string
         if (! is_string($value)) {
-            // Non-string values (arrays, objects) pass through for serialize case
+            // Non-string values pass through for serialize case
             return $value;
         }
 
         return $this->isEncrypted($value) ? $this->decrypt($value) : $value;
     }
 
-    /**
-     * Check if a string value looks like a Laravel encrypted payload.
-     */
-    protected function isEncrypted(string $value): bool
+    protected function isEncrypted(#[SensitiveParameter] string $value): bool
     {
         $decoded = base64_decode($value, true);
         if ($decoded === false) {
@@ -83,34 +85,26 @@ class EncryptedCaster extends CasterAbstract
         return is_array($payload) && isset($payload['iv'], $payload['value'], $payload['mac']);
     }
 
-    protected function encrypt(mixed $value): string
+    protected function encrypt(#[SensitiveParameter] mixed $value): string
     {
-        if ($this->encrypter) {
-            return $this->serialize
-                ? $this->encrypter->encrypt($value)
-                : $this->encrypter->encryptString((string) $value);
-        }
-
         return $this->serialize
-            ? Crypt::encrypt($value)
-            : Crypt::encryptString((string) $value);
+            ? $this->encrypter->encrypt($value)
+            : $this->encrypter->encryptString((string) $value);
     }
 
-    protected function decrypt(string $value): mixed
+    protected function decrypt(#[SensitiveParameter] string $value): mixed
     {
-        if ($this->encrypter) {
-            return $this->serialize
-                ? $this->encrypter->decrypt($value)
-                : $this->encrypter->decryptString($value);
-        }
-
         return $this->serialize
-            ? Crypt::decrypt($value)
-            : Crypt::decryptString($value);
+            ? $this->encrypter->decrypt($value)
+            : $this->encrypter->decryptString($value);
     }
 
-    protected function parseKey(string $key): string
+    protected function parseKey(#[SensitiveParameter] string $key): string
     {
+        if (str_starts_with($key, 'config:')) {
+            $key = config(substr($key, 7));
+        }
+
         if (str_starts_with($key, 'base64:')) {
             return base64_decode(substr($key, 7));
         }

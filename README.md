@@ -333,7 +333,19 @@ Your DTO must either:
 
 ## Casters
 
-Casters transform property values during hydration (input) and serialization (output).
+Casters transform property values during hydration (input) and serialization (output). The `#[Cast]` attribute supports `in:`, `out:`, and `both:` parameters:
+
+```php
+// Same caster for both directions
+#[Cast(both: new EncryptedCaster)]
+
+// Different casters per direction
+#[Cast(in: new DateTimeCaster, out: new DateTimeFormatCaster('Y-m-d'))]
+
+// Combine both: with in: or out: — chained as a CasterCollection (onion ordering)
+// Input runs: both → in | Output runs: out → both
+#[Cast(both: new EncryptedCaster, in: new SomeSanitizer)]
+```
 
 ### Built-in Casters
 
@@ -398,7 +410,7 @@ class UserDto extends Dt0
 {
     public readonly string $name;
 
-    #[Cast(in: new EncryptedCaster, out: new EncryptedCaster)]
+    #[Cast(both: new EncryptedCaster)]
     public readonly string $apiKey;
 }
 
@@ -431,6 +443,29 @@ new EncryptedCaster(key: 'base64:...')
 
 // Custom key with specific cipher
 new EncryptedCaster(key: 'base64:...', cipher: 'AES-128-CBC')
+
+// Reference a config key instead of hardcoding the key in the DTO
+new EncryptedCaster(key: 'config:services.payment.encryption_key')
+```
+
+**Config key reference:** Use the `config:` prefix to reference a Laravel config path instead of hardcoding the encryption key. The value at that config path is resolved at runtime, and supports `base64:`-encoded keys just like a direct key would.
+
+**Performance:** `Encrypter` instances are statically cached by key and cipher combination. Multiple DTO instances or properties using the same encryption key share a single `Encrypter`, avoiding repeated instantiation overhead.
+
+**Stack trace safety:** On PHP 8.2+, all sensitive parameters (keys, plaintext values) are annotated with `#[\SensitiveParameter]` and redacted from exception stack traces. On PHP 8.1, the attribute is silently ignored.
+
+**Eloquent model safety:** When using an `EncryptedCaster` DTO as an [Eloquent model attribute](#model-attribute-casting), calling `$model->toArray()` or `$model->toJson()` will trigger the DTO's output casters, meaning encrypted fields are **always encrypted** in the serialized output. Plaintext is only accessible through direct property access on the DTO instance (`$model->myDto->apiKey`).
+
+```php
+class SecureModel extends Model
+{
+    protected $casts = [
+        'credentials' => CredentialsDto::class,
+    ];
+}
+
+$model->credentials->apiKey;     // Plaintext (direct access)
+$model->toArray()['credentials'] // ['apiKey' => '...encrypted...']
 ```
 
 ## Compatibility
