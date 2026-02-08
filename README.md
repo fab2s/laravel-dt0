@@ -27,6 +27,7 @@ Traditional DTOs with mutable properties miss the core purpose: **guaranteeing t
 - [Core Features](#core-features)
   - [Creating DTOs](#creating-dtos)
   - [Factory Methods](#factory-methods)
+  - [`new` vs Factory Methods](#new-vs-factory-methods)
   - [Serialization](#serialization)
   - [Immutable Updates](#immutable-updates)
 - [Laravel Validation](#laravel-validation)
@@ -129,6 +130,14 @@ $dto = ProductDto::from($mixedInput);
 // Safe version (returns null instead of throwing)
 $dto = ProductDto::tryFrom($mixedInput);
 ```
+
+### `new` vs Factory Methods
+
+When using `new` directly with **promoted readonly properties that have a default value**, PHP initializes them immediately, **before** Dt0 can apply casting. Promoted properties without defaults behave normally.
+
+See [Dt0 readme](https://github.com/fab2s/dt0/?tab=readme-ov-file#new-vs-factory-methods) for more details.
+
+**Best practice**: Use factory methods (`make`, `from`, `fromArray`, etc.) for full casting support. Reserve `new` for cases where you're passing already-correct types or relying on defaults.
 
 ### Serialization
 
