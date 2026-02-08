@@ -13,6 +13,7 @@ use fab2s\Dt0\Dt0 as BaseDt0;
 use Illuminate\Contracts\Database\Eloquent\Castable;
 use Illuminate\Contracts\Support\Arrayable;
 
+/** @implements Arrayable<string, mixed> */
 abstract class Dt0 extends BaseDt0 implements Arrayable, Castable
 {
     use LaravelDt0Trait;

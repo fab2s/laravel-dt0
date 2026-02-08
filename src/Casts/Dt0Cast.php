@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of fab2s/laravel-dt0.
  * (c) Fabrice de Stefanis / https://github.com/fab2s/laravel-dt0
@@ -17,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use JsonException;
 use ReflectionException;
 
+/** @implements CastsAttributes<Dt0, Dt0> */
 class Dt0Cast implements CastsAttributes
 {
     /**
@@ -39,14 +42,13 @@ class Dt0Cast implements CastsAttributes
     /**
      * Cast the given value.
      *
-     * @param Model $model
      *
      * @throws NotNullableException
      * @throws JsonException
      * @throws Dt0Exception
      * @throws ReflectionException
      */
-    public function get($model, string $key, $value, array $attributes): ?Dt0
+    public function get(Model $model, string $key, mixed $value, array $attributes): ?Dt0
     {
         return $this->resolve($model, $key, $value);
     }
@@ -54,14 +56,13 @@ class Dt0Cast implements CastsAttributes
     /**
      * Prepare the given value for storage.
      *
-     * @param Model $model
      *
      * @throws Dt0Exception
      * @throws NotNullableException
      * @throws JsonException
      * @throws ReflectionException
      */
-    public function set($model, string $key, $value, array $attributes): ?string
+    public function set(Model $model, string $key, mixed $value, array $attributes): ?string
     {
         return $this->resolve($model, $key, $value)?->toJson();
     }

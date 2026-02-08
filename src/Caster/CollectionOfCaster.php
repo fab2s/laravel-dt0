@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of fab2s/laravel-dt0.
  * (c) Fabrice de Stefanis / https://github.com/fab2s/laravel-dt0
@@ -20,6 +22,7 @@ use fab2s\Enumerate\Enumerate;
 use Illuminate\Support\Collection;
 use JsonException;
 use ReflectionException;
+use UnitEnum;
 
 class CollectionOfCaster extends CasterAbstract
 {
@@ -28,6 +31,7 @@ class CollectionOfCaster extends CasterAbstract
 
     /**
      * @throws CasterException
+     * @throws ReflectionException
      */
     public function __construct(
         /** @var class-string<Dt0|UnitEnum>|ScalarType|string */
@@ -44,7 +48,7 @@ class CollectionOfCaster extends CasterAbstract
         }
 
         if (! $logicalType) {
-            throw new CasterException('[' . Dt0::classBasename(static::class) . "] $type is not a supported type");
+            throw new CasterException('[' . Dt0::classBasename(static::class) . '] ' . (is_string($type) ? $type : $type->value) . ' is not a supported type');
         }
 
         $this->logicalType  = $logicalType;
@@ -52,6 +56,8 @@ class CollectionOfCaster extends CasterAbstract
     }
 
     /**
+     * @return Collection<int, mixed>|null
+     *
      * @throws CasterException
      * @throws Dt0Exception
      * @throws JsonException
@@ -68,8 +74,8 @@ class CollectionOfCaster extends CasterAbstract
         foreach ($value as $item) {
             $result->push(match ($this->logicalType) {
                 ArrayType::DT0  => $this->type::from($item),
-                ArrayType::ENUM => Enumerate::fromAny($this->type, $item),
-                default         => $this->scalarCaster->cast($item) ?? throw (new CasterException('Could not cast array item to scalar type ' . $this->logicalType->value))->setContext([
+                ArrayType::ENUM => Enumerate::fromAny($this->type, $item), // @phpstan-ignore argument.type
+                default         => $this->scalarCaster?->cast($item) ?? throw (new CasterException('Could not cast array item to scalar type ' . $this->logicalType->value))->setContext([
                     'item' => $item,
                 ]),
             });

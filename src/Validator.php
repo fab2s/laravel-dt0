@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of fab2s/laravel-dt0.
  * (c) Fabrice de Stefanis / https://github.com/fab2s/laravel-dt0
@@ -16,6 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 class Validator extends ValidatorAbstract
 {
+    /** @var array<string, mixed> */
     protected array $rules = [];
 
     /**

@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.0.0] - 2025-02-03
+## [1.0.0] - 2025-02-08
 
 First stable release, aligned with [fab2s/dt0 1.0.0](https://github.com/fab2s/dt0/releases/tag/1.0.0).
 
@@ -28,6 +28,12 @@ Encrypt/decrypt property values using Laravel's encryption. Supports custom encr
 #[Cast(in: new EncryptedCaster, out: new EncryptedCaster)]
 public readonly string $secret;
 ```
+
+### Changed
+
+- Enforce `declare(strict_types=1)` across all source files (except `Dt0` for consistency with `BaseDt0`)
+- Add explicit type hints to `Dt0Cast::get()` and `Dt0Cast::set()` to match `CastsAttributes` interface
+- PHPStan level 9 compliance for both `src` and `tests`
 
 ## [0.0.1] - 2024-04-28
 
