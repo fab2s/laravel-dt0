@@ -10,13 +10,14 @@ First stable release, aligned with [fab2s/dt0 1.0.0](https://github.com/fab2s/dt
 
 ### Breaking Changes
 
-#### Validation Priority Order Inverted (from dt0)
+#### Inherited from [fab2s/dt0](https://github.com/fab2s/dt0)
 
-Property-level `#[Rule]` now takes precedence over class-level `#[Rules]`, which takes precedence over `#[Validate]` rules.
+- **Priority Order Inverted:** Both casting and validation priority are now Property `#[Rule]`/`#[Cast]` > Class `#[Rules]`/`#[Casts]` > `#[Validate]` rules. This allows class-level attributes to define defaults that individual properties can override.
+- **`#[Cast]` Attribute Signature:** The `#[Cast]` attribute now accepts a `both` parameter (third positional argument) for bidirectional casters. This shifts the position of `default`, `renameFrom`, `renameTo`, and `propName`. Users relying on positional arguments should switch to named arguments.
+- **`ClassCaster` Strict Types:** `ClassCaster` now enforces strict types — passing a scalar value whose type doesn't match the target class constructor will throw a `TypeError` instead of silently coercing.
+- **Output Renaming Consistency:** `toJsonArray()` now applies `renameTo` consistently with `toArray()`.
 
-This allows class-level attributes to define defaults that individual properties can override — a more intuitive behavior.
-
-**Priority order:** Property `#[Rule]` > Class `#[Rules]` > `#[Validate]` Rules
+See the [dt0 changelog](https://github.com/fab2s/dt0/blob/main/CHANGELOG.md) for the complete list.
 
 ### Added
 
