@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of fab2s/laravel-dt0.
  * (c) Fabrice de Stefanis / https://github.com/fab2s/laravel-dt0
@@ -14,6 +16,7 @@ use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 
 trait LaravelDt0Trait
 {
+    /** @return CastsAttributes<\fab2s\Dt0\Laravel\Dt0, \fab2s\Dt0\Laravel\Dt0> */
     public static function castUsing(array $arguments): CastsAttributes
     {
         return new Dt0Cast(static::class, ...$arguments);

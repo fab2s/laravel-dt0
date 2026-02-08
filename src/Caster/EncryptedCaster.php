@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of fab2s/laravel-dt0.
  * (c) Fabrice de Stefanis / https://github.com/fab2s/laravel-dt0
@@ -16,13 +18,14 @@ use SensitiveParameter;
 
 class EncryptedCaster extends CasterAbstract
 {
+    /** @var array<string, Encrypter> */
     protected static array $encrypters = [];
     protected readonly Encrypter $encrypter;
 
     /**
      * @param bool        $serialize Whether to serialize/unserialize the value (for non-string data)
-     * @param string|null $key       Custom encryption key (supports "base64:" key / "config:" config.custom.key prefix). Defaults to APP_KEY.
-     * @param string|null $cipher    Cipher to use with custom key. Defaults to app cipher (usually AES-256-CBC).
+     * @param string|null $key       Custom encryption key (supports "base64:" and "config:" prefixes). Defaults to APP_KEY.
+     * @param string|null $cipher    Cipher (supports "config:" prefix). Defaults to app cipher (usually AES-256-CBC).
      */
     public function __construct(
         public readonly bool $serialize = false,
@@ -31,9 +34,13 @@ class EncryptedCaster extends CasterAbstract
         #[SensitiveParameter]
         ?string $cipher = null,
     ) {
-        $cipher ??= config('app.cipher', 'AES-256-CBC');
-        $key          = $this->parseKey($key ?? config('app.key'));
-        $encrypterKey = sha1($key . $cipher);
+        /** @var string $configCipher */
+        $configCipher = config('app.cipher', 'AES-256-CBC');
+        $cipher       = $this->resolveConfig($cipher ?? $configCipher);
+        /** @var string $configKey */
+        $configKey    = config('app.key');
+        $key          = $this->parseKey($key ?? $configKey);
+        $encrypterKey = sha1($key . '|' . $cipher);
         static::$encrypters[$encrypterKey] ??= new Encrypter($key, $cipher);
 
         $this->encrypter = static::$encrypters[$encrypterKey];
@@ -89,7 +96,7 @@ class EncryptedCaster extends CasterAbstract
     {
         return $this->serialize
             ? $this->encrypter->encrypt($value)
-            : $this->encrypter->encryptString((string) $value);
+            : $this->encrypter->encryptString((string) $value); // @phpstan-ignore cast.string
     }
 
     protected function decrypt(#[SensitiveParameter] string $value): mixed
@@ -99,11 +106,19 @@ class EncryptedCaster extends CasterAbstract
             : $this->encrypter->decryptString($value);
     }
 
+    protected function resolveConfig(string $value): string
+    {
+        if (str_starts_with($value, 'config:')) {
+            /** @var string */
+            return config(substr($value, 7));
+        }
+
+        return $value;
+    }
+
     protected function parseKey(#[SensitiveParameter] string $key): string
     {
-        if (str_starts_with($key, 'config:')) {
-            $key = config(substr($key, 7));
-        }
+        $key = $this->resolveConfig($key);
 
         if (str_starts_with($key, 'base64:')) {
             return base64_decode(substr($key, 7));

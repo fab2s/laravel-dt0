@@ -11,6 +11,9 @@ namespace fab2s\Dt0\Laravel\Tests\Artifacts;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property EncryptedDt0|array<string, mixed>|null $encrypted_dt0
+ */
 class EncryptedCastModel extends Model
 {
     protected $table   = 'table';

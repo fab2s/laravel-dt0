@@ -1,6 +1,6 @@
 # Laravel Dt0
 
-[![CI](https://github.com/fab2s/laravel-dt0/actions/workflows/ci.yml/badge.svg)](https://github.com/fab2s/laravel-dt0/actions/workflows/ci.yml) [![QA](https://github.com/fab2s/laravel-dt0/actions/workflows/qa.yml/badge.svg)](https://github.com/fab2s/laravel-dt0/actions/workflows/qa.yml) [![codecov](https://codecov.io/gh/fab2s/laravel-dt0/graph/badge.svg?token=YE6AYEDA64)](https://codecov.io/gh/fab2s/laravel-dt0) [![Latest Stable Version](http://poser.pugx.org/fab2s/laravel-dt0/v)](https://packagist.org/packages/fab2s/laravel-dt0) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com) [![License](http://poser.pugx.org/fab2s/dt0/license)](https://packagist.org/packages/fab2s/dt0)
+[![CI](https://github.com/fab2s/laravel-dt0/actions/workflows/ci.yml/badge.svg)](https://github.com/fab2s/laravel-dt0/actions/workflows/ci.yml) [![QA](https://github.com/fab2s/laravel-dt0/actions/workflows/qa.yml/badge.svg)](https://github.com/fab2s/laravel-dt0/actions/workflows/qa.yml) [![codecov](https://codecov.io/gh/fab2s/laravel-dt0/graph/badge.svg?token=YE6AYEDA64)](https://codecov.io/gh/fab2s/laravel-dt0) [![Latest Stable Version](http://poser.pugx.org/fab2s/laravel-dt0/v)](https://packagist.org/packages/fab2s/laravel-dt0) [![PHPStan](https://img.shields.io/badge/PHPStan-level%209-brightgreen.svg?style=flat)](https://phpstan.org/) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com) [![License](http://poser.pugx.org/fab2s/dt0/license)](https://packagist.org/packages/fab2s/dt0)
 
 A powerful [Laravel](https://laravel.com/) integration for [fab2s/dt0](https://github.com/fab2s/dt0), bringing **true immutability**, **Laravel validation**, and **Eloquent model casting** to your Data Transfer Objects.
 
@@ -13,7 +13,7 @@ Traditional DTOs with mutable properties miss the core purpose: **guaranteeing t
 - **Laravel Validation** — Full power of Laravel's validation rules on DTO properties
 - **Eloquent Casting** — Use DTOs directly as model attributes with automatic serialization
 - **Flexible Hydration** — Create from arrays, JSON strings, or other instances
-- **Type Safety** — Strong typing with bidirectional casting support
+- **Type Safety** — Strong typing with bidirectional casting support, `strict_types` enforced, PHPStan level 9 clean
 - **Performance** — Logic compiled once per process and cached
 
 > **Note:** This package extends [fab2s/dt0](https://github.com/fab2s/dt0) with Laravel-specific features (validation, Eloquent casting). All features from the base package, including [property casting](https://github.com/fab2s/dt0/blob/1.0.0/docs/casters.md), property renaming, default values, output filtering, and more, work seamlessly here. Visit the [dt0 documentation](https://github.com/fab2s/dt0) for the complete feature set.
@@ -432,23 +432,40 @@ $user->toArray();   // ['name' => 'John', 'apiKey' => '...encrypted...']
 
 **Auto-detection:** On input, the caster automatically detects Laravel's encrypted payload format. Encrypted values are decrypted, while plaintext strings, arrays, and objects pass through unchanged. This allows flexible initialization from both plaintext and encrypted sources.
 
-**Options:**
+**Custom encryption key and cipher:** By default, `EncryptedCaster` uses your `APP_KEY` and app cipher. When you need different values, **always use the `config:` prefix** to reference config paths rather than hardcoding key material or cipher names in your source code. This also avoids source code changes when rotating keys or updating ciphers — just update the config:
+
+```php
+// Recommended — reference config paths (resolved at runtime)
+#[Cast(both: new EncryptedCaster(key: 'config:services.payment.encryption_key'))]
+public readonly string $paymentToken;
+
+// Both key and cipher from config
+#[Cast(both: new EncryptedCaster(
+    key: 'config:services.payment.encryption_key',
+    cipher: 'config:services.payment.cipher',
+))]
+public readonly string $secret;
+```
+
+The config values support `base64:`-encoded keys, just like `APP_KEY`:
+
+```php
+// config/services.php
+'payment' => [
+    'encryption_key' => env('PAYMENT_ENCRYPTION_KEY'), // base64:...
+    'cipher'         => env('PAYMENT_CIPHER', 'AES-256-CBC'),
+],
+```
+
+**Other options:**
 
 ```php
 // Serialize complex values (arrays, objects)
 new EncryptedCaster(serialize: true)
 
-// Use a custom encryption key (defaults to APP_KEY)
-new EncryptedCaster(key: 'base64:...')
-
-// Custom key with specific cipher
+// Direct key/cipher (for programmatic usage only — never hardcode in attributes)
 new EncryptedCaster(key: 'base64:...', cipher: 'AES-128-CBC')
-
-// Reference a config key instead of hardcoding the key in the DTO
-new EncryptedCaster(key: 'config:services.payment.encryption_key')
 ```
-
-**Config key reference:** Use the `config:` prefix to reference a Laravel config path instead of hardcoding the encryption key. The value at that config path is resolved at runtime, and supports `base64:`-encoded keys just like a direct key would.
 
 **Performance:** `Encrypter` instances are statically cached by key and cipher combination. Multiple DTO instances or properties using the same encryption key share a single `Encrypter`, avoiding repeated instantiation overhead.
 
@@ -483,6 +500,23 @@ Contributions are welcome! Please feel free to:
 - Open issues for bugs or feature requests
 - Submit pull requests
 - Improve documentation
+
+```shell
+# fix code style
+composer fix
+
+# run tests
+composer test
+
+# run tests with coverage
+composer cov
+
+# static analysis (src, level 9)
+composer stan
+
+# static analysis (tests, level 5)
+composer stan-tests
+```
 
 ## License
 

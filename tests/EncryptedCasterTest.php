@@ -221,6 +221,36 @@ class EncryptedCasterTest extends TestCase
         $this->assertSame('config-roundtrip', $decrypted);
     }
 
+    public function test_config_key_and_cipher_roundtrip(): void
+    {
+        $customKey = 'base64:' . base64_encode(random_bytes(16));
+        config([
+            'custom.encryption.key'    => $customKey,
+            'custom.encryption.cipher' => 'AES-128-CBC',
+        ]);
+
+        $caster = new EncryptedCaster(
+            key: 'config:custom.encryption.key',
+            cipher: 'config:custom.encryption.cipher',
+        );
+
+        // Create a mock Dt0 for output context
+        $encrypted = Crypt::encryptString('test');
+        $dt0       = EncryptedDt0::from(['secret' => $encrypted]);
+
+        // Encrypt (output context)
+        $encryptedValue = $caster->cast('config-cipher-roundtrip', $dt0);
+
+        // Decrypt (input context)
+        $decrypted = $caster->cast($encryptedValue, []);
+
+        $this->assertSame('config-cipher-roundtrip', $decrypted);
+
+        // Should not be decryptable with default APP_KEY
+        $this->expectException(DecryptException::class);
+        Crypt::decryptString($encryptedValue);
+    }
+
     public function test_plaintext_string_passes_through(): void
     {
         $caster = EncryptedCaster::make();

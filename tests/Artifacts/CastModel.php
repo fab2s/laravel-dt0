@@ -11,6 +11,10 @@ namespace fab2s\Dt0\Laravel\Tests\Artifacts;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property DumbDt0|array<string, mixed>|string|null $some_dt0
+ * @property DumbDt0|array<string, mixed>|string|null $some_nullable_dt0
+ */
 class CastModel extends Model
 {
     protected $table   = 'table';

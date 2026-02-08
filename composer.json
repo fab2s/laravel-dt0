@@ -36,7 +36,8 @@
     "require-dev": {
         "phpunit/phpunit": "^10.0|^11.0",
         "laravel/pint": "^1.21.2",
-        "orchestra/testbench": "^8.0|^9.0|^10.0"
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpstan/phpstan": "^2.1"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -57,8 +58,25 @@
         "post-install-cmd": [
             "rm -rf .*.cache"
         ],
-        "fix": "@php vendor/bin/pint --config pint.json --",
-        "test": "@php vendor/bin/phpunit --",
-        "cov": "@php vendor/bin/phpunit --coverage-html ./cov --"
+        "fix": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php vendor/bin/pint --ansi --config pint.json --"
+        ],
+        "test": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php vendor/bin/phpunit --colors --"
+        ],
+        "cov": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php vendor/bin/phpunit --colors --coverage-html ./cov --"
+        ],
+        "stan": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php vendor/bin/phpstan analyse -c ./phpstan.neon --ansi --"
+        ],
+        "stan-tests": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php vendor/bin/phpstan analyse -c ./phpstan-tests.neon --ansi --"
+        ]
     }
 }
