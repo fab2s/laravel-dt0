@@ -39,7 +39,13 @@ jobs:
         run: composer install --no-progress --prefer-dist --optimize-autoloader
 
       - name: Check code style
-        run: vendor/bin/pint --config pint.json
+        run: vendor/bin/pint --ansi --config pint.json --test
+
+      - name: PHPStan src
+        run: composer stan
+
+      - name: PHPStan tests
+        run: composer stan-tests
 
       - name: Compute Coverage
         run: vendor/bin/phpunit --coverage-clover ./coverage.xml
