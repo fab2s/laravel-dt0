@@ -20,14 +20,41 @@ Traditional DTOs with mutable properties miss the core purpose: **guaranteeing t
 
 **Flexible, not dogmatic.** While immutability is the core feature, Dt0 doesn't force it. Use mutable properties when needed. Expose protected properties via `with()`. The package provides capabilities; you decide how to use them.
 
+## Dt0 vs spatie/laravel-data
+
+### Feature Comparison
+
+| Feature | Dt0 | spatie/laravel-data |
+|---------|-----|---------------------|
+| True immutability (readonly) | Native, enforced | Optional, by convention |
+| Laravel validation | Built-in | Built-in |
+| Eloquent model casting | Built-in | Via package |
+| Encrypted properties | Built-in (`EncryptedCaster`) | Manual |
+| Bidirectional casting | `#[Cast(in:, out:, both:)]` | Separate Cast + Transformer |
+| Property renaming | `#[Cast(renameFrom:, renameTo:)]` | `#[MapInputName]` / `#[MapOutputName]` |
+| Dependencies | 2 illuminate components | Full framework service provider |
+| PHPStan level | 9 | 6 |
+| PHP 8.1+ readonly | First-class | Supported but not enforced |
+
+### Performance
+
+Benchmarks from [`fab2s/dt0`](https://github.com/fab2s/dt0?tab=readme-ov-file#benchmarks) (reproducible via the [benchmark script](https://github.com/fab2s/dt0/blob/main/bench/Dt0Bench.php)):
+
+| Operation | Dt0 | spatie/laravel-data | Speedup |
+|-----------|-----|---------------------|---------|
+| Simple DTO (8 props, 5 casts) | 142 µs | 1,158 µs | ~8x faster |
+| Complex DTO (nested + arrays) | 742 µs | 3,628 µs | ~5x faster |
+| toArray() (simple, cached) | 3.6 µs | 679 µs | ~189x faster |
+| toArray() (nested, cached) | 3.6 µs | 2,056 µs | ~571x faster |
+
 ## Table of Contents
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Real-World Example](#real-world-example)
 - [Core Features](#core-features)
   - [Creating DTOs](#creating-dtos)
   - [Factory Methods](#factory-methods)
-  - [`new` vs Factory Methods](#new-vs-factory-methods)
   - [Serialization](#serialization)
   - [Immutable Updates](#immutable-updates)
 - [Laravel Validation](#laravel-validation)
@@ -40,6 +67,7 @@ Traditional DTOs with mutable properties miss the core purpose: **guaranteeing t
   - [Built-in Casters](#built-in-casters)
   - [CollectionOfCaster](#collectionofcaster)
   - [EncryptedCaster](#encryptedcaster)
+- [Artisan Generator](#artisan-generator)
 - [Compatibility](#compatibility)
 - [Contributing](#contributing)
 - [License](#license)
@@ -90,6 +118,80 @@ $user->toArray();  // ['name' => 'John', 'email' => 'john@example.com', 'age' =>
 $user->toJson();   // {"name":"John","email":"john@example.com","age":30}
 ```
 
+## Real-World Example
+
+A complete request-to-response flow with validation, Eloquent casting, and typed access:
+
+```php
+use fab2s\Dt0\Attribute\Cast;
+use fab2s\Dt0\Attribute\Rule;
+use fab2s\Dt0\Attribute\Validate;
+use fab2s\Dt0\Caster\DateTimeCaster;
+use fab2s\Dt0\Caster\DateTimeFormatCaster;
+use fab2s\Dt0\Laravel\Dt0;
+use fab2s\Dt0\Laravel\Validator;
+
+// 1. Define the DTO
+#[Validate(Validator::class)]
+class CreateOrderDto extends Dt0
+{
+    #[Rule(['required', 'string', 'max:255'])]
+    public readonly string $product;
+
+    #[Rule(['required', 'integer', 'min:1'])]
+    public readonly int $quantity;
+
+    #[Rule(['required', 'email'])]
+    public readonly string $customerEmail;
+
+    #[Cast(in: new DateTimeCaster, out: new DateTimeFormatCaster('Y-m-d'))]
+    public readonly ?DateTimeImmutable $deliveryDate;
+}
+
+// 2. In a controller — validate + hydrate in one step
+public function store(Request $request): JsonResponse
+{
+    $order = CreateOrderDto::withValidation(...$request->all());
+    // throws ValidationException with Laravel's error bag on failure
+
+    // 3. Use with Eloquent (model casts the DTO to JSON automatically)
+    $model = Order::create(['details' => $order]);
+
+    // 4. Read back — Eloquent casts JSON back to DTO
+    $model->refresh();
+    $model->details->product; // typed, immutable access
+
+    return response()->json($model);
+}
+```
+
+### Form Request Integration
+
+Dt0 pairs with Form Requests for teams that prefer that pattern:
+
+```php
+// Option A: Validate in Dt0 (replaces Form Request)
+$dto = CreateOrderDto::withValidation(...$request->all());
+
+// Option B: Validate in Form Request, hydrate with Dt0
+class CreateOrderRequest extends FormRequest
+{
+    public function rules(): array { /* ... */ }
+
+    public function toDto(): CreateOrderDto
+    {
+        return CreateOrderDto::from($this->validated());
+    }
+}
+
+// In controller
+public function store(CreateOrderRequest $request): JsonResponse
+{
+    $order = $request->toDto();
+    // ...
+}
+```
+
 ## Core Features
 
 ### Creating DTOs
@@ -131,13 +233,16 @@ $dto = ProductDto::from($mixedInput);
 $dto = ProductDto::tryFrom($mixedInput);
 ```
 
-### `new` vs Factory Methods
+<details>
+<summary><strong><code>new</code> vs Factory Methods</strong></summary>
 
 When using `new` directly with **promoted readonly properties that have a default value**, PHP initializes them immediately, **before** Dt0 can apply casting. Promoted properties without defaults behave normally.
 
 See [Dt0 readme](https://github.com/fab2s/dt0/?tab=readme-ov-file#new-vs-factory-methods) for more details.
 
 **Best practice**: Use factory methods (`make`, `from`, `fromArray`, etc.) for full casting support. Reserve `new` for cases where you're passing already-correct types or relying on defaults.
+
+</details>
 
 ### Serialization
 
@@ -493,6 +598,22 @@ class SecureModel extends Model
 $model->credentials->apiKey;     // Plaintext (direct access)
 $model->toArray()['credentials'] // ['apiKey' => '...encrypted...']
 ```
+
+## Artisan Generator
+
+Scaffold new DTOs with the `make:dt0` Artisan command:
+
+```shell
+# Create a basic DTO
+php artisan make:dt0 UserDto
+# Creates app/Dto/UserDto.php
+
+# Create with validation scaffolding
+php artisan make:dt0 UserDto --validated
+# Creates with #[Validate] and #[Rule] attributes
+```
+
+The service provider is auto-discovered — no manual registration needed.
 
 ## Compatibility
 

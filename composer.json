@@ -1,6 +1,6 @@
 {
     "name": "fab2s/laravel-dt0",
-    "description": "Laravel support for fab2s/dt0",
+    "description": "Immutable Data Transfer Objects (DTO) for Laravel with validation, Eloquent casting, and encryption",
     "type": "library",
     "authors": [{
         "name": "Fabrice de Stefanis"
@@ -49,6 +49,13 @@
     "autoload-dev": {
         "psr-4": {
             "fab2s\\Dt0\\Laravel\\Tests\\": "tests"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "fab2s\\Dt0\\Laravel\\Dt0ServiceProvider"
+            ]
         }
     },
     "scripts": {
