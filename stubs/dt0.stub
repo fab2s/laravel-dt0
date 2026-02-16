@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use fab2s\Dt0\Laravel\Dt0;
+
+class {{ class }} extends Dt0
+{
+    //
+}
