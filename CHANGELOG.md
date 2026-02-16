@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] - 2026-02-16
+
+### Added
+
+- Artisan `make:dt0` generator command with `--validated` option
+- `Dt0ServiceProvider` with Laravel auto-discovery
+- Publishable stubs (`dt0.stub`, `dt0.validated.stub`)
+
 ## [1.0.0] - 2025-02-08
 
 First stable release, aligned with [fab2s/dt0 1.0.0](https://github.com/fab2s/dt0/releases/tag/1.0.0).
