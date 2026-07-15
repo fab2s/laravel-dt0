@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.0] - 2026-07-15
+
+### Breaking Changes
+
+#### Minimum PHP 8.2
+
+Dropped PHP 8.1 support — the minimum is now PHP 8.2, aligned with [fab2s/dt0 2.0.0](https://github.com/fab2s/dt0/releases/tag/2.0.0). Projects still on PHP 8.1 can continue using the 1.0.x line.
+
+#### Laravel 10 support dropped
+
+Dropped Laravel 10 (`illuminate/*` and `orchestra/testbench ^8.0`). The supported range is now Laravel 11, 12, and 13. Projects still on Laravel 10 can continue using the 1.0.x line.
+
+### Added
+
+#### PHP 8.5 support
+
+Full support for PHP 8.5, including its stricter runtime checks.
+
+#### Laravel 13 support
+
+Support for Laravel 13 (`illuminate/* ^13.0`, `orchestra/testbench ^11.0`) alongside Laravel 11 and 12. The CI matrix now covers PHP 8.2–8.5 across Laravel 11/12/13, and QA/coverage runs on PHP 8.5.
+
+### Changed
+
+- Bumped `fab2s/dt0` to `^2.0.0`.
+- Bumped dev dependencies: `phpunit/phpunit` to `^11.0|^12.0`, `orchestra/testbench` to `^9.0|^10.0|^11.0`.
+
 ## [1.0.1] - 2026-02-16
 
 ### Added

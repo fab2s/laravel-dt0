@@ -6,7 +6,7 @@ A powerful [Laravel](https://laravel.com/) integration for [fab2s/dt0](https://g
 
 ## Why Dt0?
 
-Traditional DTOs with mutable properties miss the core purpose: **guaranteeing that data won't be accidentally modified**. Dt0 leverages PHP 8.1+'s native `readonly` properties to enforce immutability at the language level, not by convention, but by design.
+Traditional DTOs with mutable properties miss the core purpose: **guaranteeing that data won't be accidentally modified**. Dt0 leverages PHP 8.2+'s native `readonly` properties to enforce immutability at the language level, not by convention, but by design.
 
 **Key Benefits:**
 - **True Immutability** — Readonly properties prevent accidental modifications (fatal error, not silent bug)
@@ -34,7 +34,7 @@ Traditional DTOs with mutable properties miss the core purpose: **guaranteeing t
 | Property renaming | `#[Cast(renameFrom:, renameTo:)]` | `#[MapInputName]` / `#[MapOutputName]` |
 | Dependencies | 2 illuminate components | Full framework service provider |
 | PHPStan level | 9 | 6 |
-| PHP 8.1+ readonly | First-class | Supported but not enforced |
+| PHP 8.2+ readonly | First-class | Supported but not enforced |
 
 ### Performance
 
@@ -583,7 +583,7 @@ new EncryptedCaster(key: 'base64:...', cipher: 'AES-128-CBC')
 
 **Performance:** `Encrypter` instances are statically cached by key and cipher combination. Multiple DTO instances or properties using the same encryption key share a single `Encrypter`, avoiding repeated instantiation overhead.
 
-**Stack trace safety:** On PHP 8.2+, all sensitive parameters (keys, plaintext values) are annotated with `#[\SensitiveParameter]` and redacted from exception stack traces. On PHP 8.1, the attribute is silently ignored.
+**Stack trace safety:** All sensitive parameters (keys, plaintext values) are annotated with `#[\SensitiveParameter]` and redacted from exception stack traces.
 
 **Eloquent model safety:** When using an `EncryptedCaster` DTO as an [Eloquent model attribute](#model-attribute-casting), calling `$model->toArray()` or `$model->toJson()` will trigger the DTO's output casters, meaning encrypted fields are **always encrypted** in the serialized output. Plaintext is only accessible through direct property access on the DTO instance (`$model->myDto->apiKey`).
 
@@ -619,10 +619,10 @@ The service provider is auto-discovered — no manual registration needed.
 
 | PHP | Laravel | Status |
 |-----|---------|--------|
-| 8.1 | 10.x | Supported |
-| 8.2 | 10.x, 11.x | Supported |
-| 8.3 | 10.x, 11.x, 12.x | Supported |
-| 8.4 | 11.x, 12.x | Supported |
+| 8.2 | 11.x, 12.x | Supported |
+| 8.3 | 11.x, 12.x, 13.x | Supported |
+| 8.4 | 11.x, 12.x, 13.x | Supported |
+| 8.5 | 13.x | Supported |
 
 ## Contributing
 
