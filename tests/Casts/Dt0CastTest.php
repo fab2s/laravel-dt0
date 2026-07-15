@@ -59,7 +59,7 @@ class Dt0CastTest extends TestCase
         DumbDt0|string|null $expected,
         array $options = [],
     ): void {
-        $cast = new Dt0cast(DumbDt0::class, ...$options);
+        $cast = new Dt0Cast(DumbDt0::class, ...$options);
 
         switch (true) {
             case is_object($expected):
@@ -88,7 +88,7 @@ class Dt0CastTest extends TestCase
         DumbDt0|string|null $expected,
         array $options = [],
     ): void {
-        $cast = new Dt0cast(DumbDt0::class, ...$options);
+        $cast = new Dt0Cast(DumbDt0::class, ...$options);
 
         switch (true) {
             case is_object($expected):

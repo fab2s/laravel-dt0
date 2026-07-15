@@ -16,7 +16,7 @@ use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 
 trait LaravelDt0Trait
 {
-    /** @return CastsAttributes<\fab2s\Dt0\Laravel\Dt0, \fab2s\Dt0\Laravel\Dt0> */
+    /** @return CastsAttributes<Dt0, Dt0> */
     public static function castUsing(array $arguments): CastsAttributes
     {
         return new Dt0Cast(static::class, ...$arguments);
