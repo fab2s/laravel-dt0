@@ -15,6 +15,7 @@ Traditional DTOs with mutable properties miss the core purpose: **guaranteeing t
 - **Flexible Hydration** — Create from arrays, JSON strings, or other instances
 - **Type Safety** — Strong typing with bidirectional casting support, `strict_types` enforced, PHPStan level 9 clean
 - **Performance** — Logic compiled once per process and cached
+- **Octane Ready** — Under [Laravel Octane](https://laravel.com/docs/octane), DTO logic is compiled once per worker and reused by every request, while nothing tied to one request carries over to the next. No configuration needed
 
 > **Note:** This package extends [fab2s/dt0](https://github.com/fab2s/dt0) with Laravel-specific features (validation, Eloquent casting). All features from the base package, including [property casting](https://github.com/fab2s/dt0/blob/1.0.0/docs/casters.md), property renaming, default values, output filtering, and more, work seamlessly here. Visit the [dt0 documentation](https://github.com/fab2s/dt0) for the complete feature set.
 
@@ -70,6 +71,7 @@ Benchmarks from [`fab2s/dt0`](https://github.com/fab2s/dt0?tab=readme-ov-file#be
   - [EncryptedCaster](#encryptedcaster)
 - [Artisan Generator](#artisan-generator)
 - [Compatibility](#compatibility)
+  - [Laravel Octane](#laravel-octane)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -401,7 +403,7 @@ class SlugDto extends Dt0
 
 ### dt0's Built-in Validator
 
-The examples above use laravel-dt0's `fab2s\Dt0\Laravel\Validator`, which goes through Laravel's `Validator` facade on every call. dt0's own `fab2s\Dt0\Validator\Validator` also works in Laravel, but it caches the validation factory of the app that resolved it. The service provider resets that cache with `fab2s\Dt0\Validator\Validator::flush()` when it registers, so a rebuilt app, as before each test, never validates with a previous app's factory.
+The examples above use laravel-dt0's `fab2s\Dt0\Laravel\Validator`, which goes through Laravel's `Validator` facade on every call. dt0's own `fab2s\Dt0\Validator\Validator` also works in Laravel, but it caches the validation factory of the app that resolved it. The service provider resets that cache with `fab2s\Dt0\Validator\Validator::flush()` when it registers, so a rebuilt app, as before each test, never validates with a previous app's factory. Under [Octane](https://laravel.com/docs/octane), it also resets it at the start of each request, task and tick, since Octane runs each of them on a copy of the app that it flushes afterwards. Octane is not required for this.
 
 When the provider is not loaded, call `fab2s\Dt0\Validator\Validator::flush()` yourself, for example in your test case's `setUp()`. That is the case in a package's Testbench suite that does not list `Dt0ServiceProvider` in `getPackageProviders()`, since Testbench skips package discovery by default, and in an app that excludes laravel-dt0 from discovery. If you extend `Dt0ServiceProvider` and override `register()`, call `parent::register()`.
 
@@ -630,6 +632,14 @@ The service provider is auto-discovered — no manual registration needed.
 | 8.3 | 11.x, 12.x, 13.x | Supported |
 | 8.4 | 11.x, 12.x, 13.x | Supported |
 | 8.5 | 13.x | Supported |
+
+### Laravel Octane
+
+laravel-dt0 works with [Laravel Octane](https://laravel.com/docs/octane), on Swoole, RoadRunner or FrankenPHP, without any configuration.
+
+- Compiled DTO metadata is cached once per worker and shared by all requests. It is built from your classes, not from the app, so sharing it is safe.
+- laravel-dt0's own `Validator` resolves Laravel's validator through its facade on every call, and Octane resets facades for each request.
+- dt0's built-in `Validator` caches the validation factory of the app that resolved it, and Octane runs each request, task and tick on a fresh copy of the app that it flushes afterwards. The service provider resets that cache at the start of each of them, so every request validates with its own factory. See [dt0's Built-in Validator](#dt0s-built-in-validator).
 
 ## Contributing
 
