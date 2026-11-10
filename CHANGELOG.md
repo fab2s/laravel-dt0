@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+## [2.0.1] - 2026-11-10
+
+### Fixed
+
+- Used in a Laravel app, dt0's built-in `Validator` (`fab2s\Dt0\Validator\Validator`) no longer keeps the first app's validation factory after the app is rebuilt, as between two tests. The service provider now calls `Validator::flush()` when it registers, so each app validates with its own factory, locale, translations and database connection. laravel-dt0's own `Validator` was not affected.
+
+### Changed
+
+- Requires [fab2s/dt0](https://github.com/fab2s/dt0) `^2.1.0`, which provides `Validator::flush()` and stops the global `trans()` / `__()` helpers from ignoring the Laravel translator. dt0 2.1.0 also changes how subclasses of its built-in `Validator` work: see [its changelog](https://github.com/fab2s/dt0/blob/main/CHANGELOG.md).
+
 ## [2.0.0] - 2026-07-15
 
 ### Breaking Changes

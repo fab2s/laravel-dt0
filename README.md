@@ -62,6 +62,7 @@ Benchmarks from [`fab2s/dt0`](https://github.com/fab2s/dt0?tab=readme-ov-file#be
   - [Rule Priority](#rule-priority)
   - [Triggering Validation](#triggering-validation)
   - [Custom Validation Rules](#custom-validation-rules)
+  - [dt0's Built-in Validator](#dt0s-built-in-validator)
 - [Model Attribute Casting](#model-attribute-casting)
 - [Casters](#casters)
   - [Built-in Casters](#built-in-casters)
@@ -397,6 +398,12 @@ class SlugDto extends Dt0
     public readonly string $slug;
 }
 ```
+
+### dt0's Built-in Validator
+
+The examples above use laravel-dt0's `fab2s\Dt0\Laravel\Validator`, which goes through Laravel's `Validator` facade on every call. dt0's own `fab2s\Dt0\Validator\Validator` also works in Laravel, but it caches the validation factory of the app that resolved it. The service provider resets that cache with `fab2s\Dt0\Validator\Validator::flush()` when it registers, so a rebuilt app, as before each test, never validates with a previous app's factory.
+
+When the provider is not loaded, call `fab2s\Dt0\Validator\Validator::flush()` yourself, for example in your test case's `setUp()`. That is the case in a package's Testbench suite that does not list `Dt0ServiceProvider` in `getPackageProviders()`, since Testbench skips package discovery by default, and in an app that excludes laravel-dt0 from discovery. If you extend `Dt0ServiceProvider` and override `register()`, call `parent::register()`.
 
 ## Model Attribute Casting
 
