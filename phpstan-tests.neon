@@ -14,3 +14,8 @@ parameters:
             identifier: property.uninitializedReadonly
         -
             identifier: catch.neverThrown
+        -
+            # Octane is optional and not installed here: its event ::class names are plain strings
+            identifier: class.notFound
+            message: '#^Class Laravel\\Octane\\Events\\\w+ not found\.$#'
+            reportUnmatched: false

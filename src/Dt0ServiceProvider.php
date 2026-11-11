@@ -12,10 +12,38 @@ declare(strict_types=1);
 namespace fab2s\Dt0\Laravel;
 
 use fab2s\Dt0\Laravel\Console\MakeDt0Command;
+use fab2s\Dt0\Validator\Validator as Dt0Validator;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Octane\Events\RequestReceived;
+use Laravel\Octane\Events\TaskReceived;
+use Laravel\Octane\Events\TickReceived;
 
 class Dt0ServiceProvider extends ServiceProvider
 {
+    /**
+     * No return type, like Laravel's ServiceProvider::register(), so that
+     * subclasses declaring an untyped register() stay compatible.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        // dt0's built-in Validator caches the validation factory of the app that
+        // resolved it. This runs once per app (once per test, once per request
+        // under PHP-FPM), so a rebuilt app never validates with a previous one's factory.
+        Dt0Validator::flush();
+
+        // Octane runs each request, task and tick on a copy of the app, which it
+        // flushes afterwards. ::class does not load these classes, so Octane is not
+        // required: without it, these events never fire.
+        $this->app->make(Dispatcher::class)->listen([
+            RequestReceived::class,
+            TaskReceived::class,
+            TickReceived::class,
+        ], static fn () => Dt0Validator::flush());
+    }
+
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {

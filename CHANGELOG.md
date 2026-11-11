@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+## [2.0.1] - 2026-11-11
+
+### Fixed
+
+- Used in a Laravel app, dt0's built-in `Validator` (`fab2s\Dt0\Validator\Validator`) no longer keeps the first app's validation factory after the app is rebuilt, as between two tests. The service provider now calls `Validator::flush()` when it registers, so each app validates with its own factory, locale, translations and database connection. laravel-dt0's own `Validator` was not affected.
+- Under Octane, dt0's built-in `Validator` kept the validation factory of the first request that used it for the whole worker, although Octane flushes that request's copy of the app once it is done. The service provider now also calls `Validator::flush()` at the start of each Octane request, task and tick. It listens to Octane's events by name, so Octane is still not required.
+
+### Added
+
+- [Laravel Octane](https://laravel.com/docs/octane) support, on Swoole, RoadRunner and FrankenPHP, with no configuration. Each worker compiles DTO logic once and every request reuses it, but nothing tied to one request carries over to the next. See the README's [Laravel Octane](https://github.com/fab2s/laravel-dt0#laravel-octane) section.
+
+### Changed
+
+- Requires [fab2s/dt0](https://github.com/fab2s/dt0) `^2.1.0`, which provides `Validator::flush()` and stops the global `trans()` / `__()` helpers from ignoring the Laravel translator. dt0 2.1.0 also changes how subclasses of its built-in `Validator` work: see [its changelog](https://github.com/fab2s/dt0/blob/main/CHANGELOG.md).
+
 ## [2.0.0] - 2026-07-15
 
 ### Breaking Changes
